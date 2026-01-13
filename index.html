@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>书签导航 | Bookmark Navigator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            color: var(--text-color);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .admin-link {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .admin-link:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .search-section {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .search-engines {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-engine {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .search-engine:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .search-engine.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .search-engine-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-engine-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            opacity: 0.9;
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .bookmark-search {
+            margin-top: 1rem;
+        }
+
+        .bookmark-search input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .bookmark-search input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .bookmarks-section {
+            display: none;
+        }
+
+        .bookmarks-section.active {
+            display: block;
+        }
+
+        .category {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .category:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .category-icon {
+            width: 2rem;
+            height: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .category-count {
+            background: var(--bg-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        .category.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .bookmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .category.collapsed .bookmarks-grid {
+            display: none;
+        }
+
+        .bookmark-card {
+            background: var(--bg-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .bookmark-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .bookmark-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .bookmark-favicon {
+            width: 24px;
+            height: 24px;
+            border-radius: 0.25rem;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .bookmark-favicon.default {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .bookmark-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .bookmark-url {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: white;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: white;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .empty-state-text {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .bookmarks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-engines {
+                flex-direction: column;
+            }
+
+            .search-engine {
+                max-width: 100%;
+            }
+
+            .admin-link {
+                position: static;
+                display: inline-block;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/admin" class="admin-link">⚙️ 管理后台</a>
+        
+        <div class="header">
+            <h1>📚 书签导航</h1>
+            <p>快速访问您的常用网站</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-engines">
+                <div class="search-engine active" data-engine="google">
+                    <div class="search-engine-icon">🌐</div>
+                    <div class="search-engine-name">Google</div>
+                </div>
+                <div class="search-engine" data-engine="bing">
+                    <div class="search-engine-icon">🔵</div>
+                    <div class="search-engine-name">Bing</div>
+                </div>
+                <div class="search-engine" data-engine="baidu">
+                    <div class="search-engine-icon">🔴</div>
+                    <div class="search-engine-name">百度</div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="webSearchInput" placeholder="在网上搜索...">
+                <button class="search-button" id="webSearchBtn">搜索</button>
+            </div>
+
+            <div class="bookmark-search">
+                <input type="text" id="bookmarkSearchInput" placeholder="🔍 搜索书签...">
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalCount">0</div>
+                    <div class="stat-label">总书签</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="categoryCount">0</div>
+                    <div class="stat-label">分类</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bookmarks-section" id="bookmarksSection">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>加载中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class BookmarkNavigator {
+            constructor() {
+                this.bookmarks = [];
+                this.categories = new Map();
+                this.currentSearchEngine = 'google';
+                this.searchEngines = {
+                    google: 'https://www.google.com/search?q=',
+                    bing: 'https://www.bing.com/search?q=',
+                    baidu: 'https://www.baidu.com/s?wd='
+                };
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.loadBookmarks();
+            }
+
+            setupEventListeners() {
+                // 搜索引擎选择
+                document.querySelectorAll('.search-engine').forEach(engine => {
+                    engine.addEventListener('click', (e) => {
+                        document.querySelectorAll('.search-engine').forEach(el => el.classList.remove('active'));
+                        engine.classList.add('active');
+                        this.currentSearchEngine = engine.dataset.engine;
+                    });
+                });
+
+                // 网络搜索
+                const webSearchInput = document.getElementById('webSearchInput');
+                const webSearchBtn = document.getElementById('webSearchBtn');
+                
+                webSearchBtn.addEventListener('click', () => this.performWebSearch());
+                webSearchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.performWebSearch();
+                });
+
+                // 书签搜索
+                const bookmarkSearchInput = document.getElementById('bookmarkSearchInput');
+                bookmarkSearchInput.addEventListener('input', (e) => {
+                    this.searchBookmarks(e.target.value);
+                });
+            }
+
+            performWebSearch() {
+                const query = document.getElementById('webSearchInput').value.trim();
+                if (query) {
+                    const searchUrl = this.searchEngines[this.currentSearchEngine] + encodeURIComponent(query);
+                    window.open(searchUrl, '_blank');
+                }
+            }
+
+            async loadBookmarks() {
+                try {
+                    const response = await fetch('/api/bookmarks');
+                    if (!response.ok) throw new Error('Failed to load bookmarks');
+                    
+                    const data = await response.json();
+                    this.processBookmarks(data);
+                    this.renderBookmarks();
+                } catch (error) {
+                    console.error('加载书签失败:', error);
+                    this.showEmptyState('加载失败,请刷新重试');
+                }
+            }
+
+            processBookmarks(data) {
+                this.bookmarks = data.bookmarks || [];
+                this.categories.clear();
+
+                // 按分类组织书签
+                const categoryMap = new Map();
+                (data.categories || []).forEach(cat => {
+                    categoryMap.set(cat.id, cat);
+                    this.categories.set(cat.name, []);
+                });
+
+                this.bookmarks.forEach(bookmark => {
+                    const category = categoryMap.get(bookmark.categoryId);
+                    if (category) {
+                        this.categories.get(category.name).push(bookmark);
+                    }
+                });
+
+                // 更新统计
+                document.getElementById('totalCount').textContent = this.bookmarks.length;
+                document.getElementById('categoryCount').textContent = this.categories.size;
+            }
+
+            renderBookmarks(filteredCategories = null) {
+                const bookmarksSection = document.getElementById('bookmarksSection');
+                bookmarksSection.classList.add('active');
+                bookmarksSection.innerHTML = '';
+
+                const categoriesToRender = filteredCategories || this.categories;
+
+                if (categoriesToRender.size === 0) {
+                    this.showEmptyState('暂无书签');
+                    return;
+                }
+
+                categoriesToRender.forEach((bookmarks, categoryName) => {
+                    if (bookmarks.length === 0) return;
+
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category';
+                    
+                    const categoryIcon = this.getCategoryIcon(categoryName);
+                    
+                    categoryDiv.innerHTML = `
+                        <div class="category-header">
+                            <div class="category-title">
+                                <div class="category-icon">${categoryIcon}</div>
+                                <span>${categoryName}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span class="category-count">${bookmarks.length}</span>
+                                <span class="toggle-icon">▼</span>
+                            </div>
+                        </div>
+                        <div class="bookmarks-grid">
+                            ${bookmarks.map(bookmark => this.createBookmarkCard(bookmark)).join('')}
+                        </div>
+                    `;
+
+                    const header = categoryDiv.querySelector('.category-header');
+                    header.addEventListener('click', () => {
+                        categoryDiv.classList.toggle('collapsed');
+                    });
+
+                    bookmarksSection.appendChild(categoryDiv);
+                });
+
+                // 添加点击事件
+                document.querySelectorAll('.bookmark-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        window.open(card.dataset.url, '_blank');
+                    });
+                });
+            }
+
+            createBookmarkCard(bookmark) {
+                const domain = this.extractDomain(bookmark.url);
+                const favicon = bookmark.icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+                const initial = bookmark.title.charAt(0).toUpperCase();
+
+                return `
+                    <div class="bookmark-card" data-url="${bookmark.url}">
+                        <div class="bookmark-header">
+                            <img src="${favicon}" class="bookmark-favicon" alt="" onerror="this.outerHTML='<div class=\\'bookmark-favicon default\\'>${initial}</div>'">
+                            <div class="bookmark-title">${bookmark.title}</div>
+                        </div>
+                        <div class="bookmark-url">${domain}</div>
+                    </div>
+                `;
+            }
+
+            extractDomain(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.hostname;
+                } catch {
+                    return url;
+                }
+            }
+
+            getCategoryIcon(categoryName) {
+                const iconMap = {
+                    '收藏夹栏': '⭐',
+                    '工具': '🔧',
+                    '技术': '💻',
+                    '博客': '📝',
+                    '学习': '🎓',
+                    '资料': '📚',
+                    '娱乐': '🎮',
+                    '未分类': '📌'
+                };
+
+                for (const [key, icon] of Object.entries(iconMap)) {
+                    if (categoryName.includes(key)) return icon;
+                }
+                return '📁';
+            }
+
+            searchBookmarks(query) {
+                if (!query.trim()) {
+                    this.renderBookmarks();
+                    return;
+                }
+
+                const filtered = new Map();
+                const lowerQuery = query.toLowerCase();
+
+                this.categories.forEach((bookmarks, categoryName) => {
+                    const matchedBookmarks = bookmarks.filter(bookmark => 
+                        bookmark.title.toLowerCase().includes(lowerQuery) ||
+                        bookmark.url.toLowerCase().includes(lowerQuery)
+                    );
+
+                    if (matchedBookmarks.length > 0) {
+                        filtered.set(categoryName, matchedBookmarks);
+                    }
+                });
+
+                this.renderBookmarks(filtered);
+            }
+
+            showEmptyState(message) {
+                const bookmarksSection = document.getElementById('bookmarksSection');
+                bookmarksSection.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">${message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        new BookmarkNavigator();
+    </script>
+</body>
+</html>

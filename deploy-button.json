@@ -1,0 +1,19 @@
+{
+  "$schema": "https://deploy.workers.cloudflare.com/schema.json",
+  "version": 1,
+  "name": "bookmark-navigator",
+  "description": "书签导航 - 现代化的书签管理系统",
+  "repository": "https://github.com/Natdog-6ix9ine/nav",
+  "logo": "📚",
+  "kv_namespaces": [
+    {
+      "binding": "BOOKMARKS",
+      "title": "书签数据存储"
+    }
+  ],
+  "secrets": [],
+  "env": {},
+  "deployment": {
+    "compatibility_date": "2024-01-01"
+  }
+}

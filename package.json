@@ -1,0 +1,22 @@
+{
+  "name": "bookmark-navigator",
+  "version": "2.0.0",
+  "description": "书签导航 - 前后台分离版本",
+  "main": "src/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "kv:create": "wrangler kv:namespace create BOOKMARKS",
+    "kv:create-dev": "wrangler kv:namespace create BOOKMARKS --preview"
+  },
+  "keywords": [
+    "bookmark",
+    "navigator",
+    "cloudflare-workers"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
