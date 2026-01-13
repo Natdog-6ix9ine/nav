@@ -24,10 +24,6 @@ Thumbs.db
 *.swo
 *~
 
-# Build output
-dist/
-build/
-
 # Logs
 *.log
 npm-debug.log*
@@ -37,11 +33,3 @@ yarn-error.log*
 # Temporary files
 *.tmp
 .cache/
-
-# Backup files
-*.bak
-*.backup
-
-# Old files
-bookmark-navigator.html
-worker.js
